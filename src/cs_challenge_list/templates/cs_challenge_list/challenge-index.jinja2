@@ -3,7 +3,21 @@
 {% block content %}
 
 <div>
-  
+  <section class="content-cards">
+    <aside>
+      <h1>Minhas Listas Desafio</h1>
+    </aside>
+
+    <ul id="navigation">
+      {% for list in challenge_lists -%}
+      <li class="active">
+        <a href="#" class="">
+          <h1>{{ list.name }}</h1>
+        </a>
+      </li>
+      {%- endfor %}
+    </ul>
+  </section>
 </div>
 
 {% endblock %}

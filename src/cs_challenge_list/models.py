@@ -6,6 +6,7 @@ from cs_core.models import ProgrammingLanguage
 
 class ChallengeQuestion(models.Model):
     """ Describes the extention of a class Question """
+    # TODO: this should be inherence from Question
     name = models.CharField("challenge name",
             max_length=50,
             blank=False,
@@ -33,6 +34,9 @@ class ChallengeQuestion(models.Model):
             ProgrammingLanguage,
             null=True)
 
+    def __str__(self):
+        return self.name
+
 class ChallengeList(models.Model):
     """ Describes the challenge list created by the user """
     name = models.CharField(max_length=50)
@@ -41,6 +45,9 @@ class ChallengeList(models.Model):
             ChallengeQuestion,
             on_delete=models.CASCADE,
             null=True)
+
+    def __str__(self):
+        return self.name
 
 class ChallengeListRank(models.Model):
     """ Describes the Rank of the List """
