@@ -2,13 +2,21 @@
 
 {% block content %}
 
-<div>
   <section class="content-cards">
     <aside>
-      <h1>Lista: {{challenge_list.name}}</h1>
+      <h1>{{challenge_list.name}}</h1>
     </aside>
   </section>
-</div>
+
+  <section class="content-cards">
+    List name: {{challenge_list.name}} <br>
+    List description: {{challenge_list.description}} <br><br>
+    Questions:<br>
+    {% for question in questions -%}
+      {{question.name}}<br>
+    {%- endfor %}<br>
+  </section>
+  <button class="danger">Edit</button>
 
 {% endblock %}
 

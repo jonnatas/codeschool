@@ -7,7 +7,7 @@ from cs_core.models import ProgrammingLanguage
 class ChallengeQuestion(models.Model):
     """ Describes the extention of a class Question """
     # TODO: this should be inherence from Question
-    name = models.CharField("challenge name",
+    name = models.CharField("question name",
             max_length=50,
             blank=False,
             null=True)
@@ -41,10 +41,7 @@ class ChallengeList(models.Model):
     """ Describes the challenge list created by the user """
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=140)
-    challenge_question = models.ForeignKey(
-            ChallengeQuestion,
-            on_delete=models.CASCADE,
-            null=True)
+    challenge_question = models.ManyToManyField(ChallengeQuestion)
 
     def __str__(self):
         return self.name
