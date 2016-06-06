@@ -65,10 +65,13 @@ class CodeBlock(blocks.StructBlock):
 class InputCodeBlock(CodeBlock):
     """interative code blocks """
     
+    block_id = blocks.CharBlock(max_length=50)
+
     def render(self, value):
         lang = value['language'].ref
         code = escape(value['code'])
-        data = '<ace-editor mode="%s">%s</ace-editor>' % (lang, code)
+        id_value = value['block_id']
+        data = '<ace-editor mode="%s" id="input-code-%s">%s</ace-editor>' % (lang, id_value, code)
         return mark_safe(data)
 
 class userInputBlock(CodeBlock):
@@ -79,7 +82,7 @@ class userInputBlock(CodeBlock):
     def render(self, value):
         lang = 'python'
         code = escape(value['code'])
-        data = '<h3>Try This</h3> <form> <textarea id="yourcode" cols="40" rows="10">%s</textarea><br /> <button type="button" onclick="runit()">Run</button> </form> <pre id="output" ></pre> <!-- If you want turtle graphics include a canvas --><div id="mycanvas"></div> ' % (value['code'])
+        data = '<h3>Try This</h3> <form><ace-editor id="yourcode" mode="python">%s</ace-editor><br /> <button type="button" onclick="runit()">Run</button> </form> <pre id="output" ></pre> <!-- If you want turtle graphics include a canvas --><div id="mycanvas"></div> ' % (code)
         return mark_safe(data)            
 
 
@@ -98,3 +101,6 @@ class HomePage(Page):
     ]
 
     template = 'cs_pages/home_page.jinja2'
+
+    def get_input_code_source_from_id(self, id_code):
+        pass
