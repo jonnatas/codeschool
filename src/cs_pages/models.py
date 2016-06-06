@@ -1,4 +1,4 @@
-from django.db import models
+from codeschool import models
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
 from django import forms
@@ -69,25 +69,15 @@ class InputCodeBlock(CodeBlock):
         lang = value['language'].ref
         code = escape(value['code'])
         data = '<ace-editor mode="%s">%s</ace-editor>' % (lang, code)
-        return mark_safe(data)
-
-class userInputBlock(CodeBlock):
-    """interative code blocks """
-    
-    def render(self, value):
-        lang = 'python'
-        code = escape(value['code'])
-        data = '<script type="text/javascript"> function outf(text) { var mypre = document.getElementById("output"); mypre.innerHTML = mypre.innerHTML + text; } function builtinRead(x) { if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined) throw "File not found: '" + x + "'"; return Sk.builtinFiles["files"][x];}function runit() { var prog = document.getElementById("yourcode").value; var mypre = document.getElementById("output"); mypre.innerHTML = ''; Sk.pre = "output"; Sk.configure({output:outf, read:builtinRead}); (Sk.TurtleGraphics || (Sk.TurtleGraphics = {})).target = \'mycanvas\'; var myPromise = Sk.misceval.asyncToPromise(function() { return Sk.importMainWithBody("<stdin>", false, prog, true); }); myPromise.then(function(mod) { console.log(\'success\'); }, function(err) { console.log(err.toString()); });} </script> <h3>Try This</h3> <form> <textarea id="yourcode" cols="40" rows="10">import turtlet = turtle.Turtle()t.forward(100)print "Hello World" </textarea><br /> <button type="button" onclick="runit()">Run</button> </form> <pre id="output" ></pre> <div id="mycanvas"></div> '
-        return mark_safe(data)            
+        return mark_safe(data)      
 
 
-class HomePage(Page):
+class TutorialPage(Page):
     body = StreamField([
         ('heading', blocks.CharBlock(classname="full title")),
         ('paragraph', blocks.RichTextBlock()),
         ('code', CodeBlock()),
         ('interactive_code', InputCodeBlock()),
-        ('user_input', userInputBlock()),
         ('image', ImageChooserBlock()),
     ])
 
@@ -96,3 +86,47 @@ class HomePage(Page):
     ]
 
     template = 'cs_pages/home_page.jinja2'
+
+    def get_progress_for_user(self, user):
+        """dsfsdfsd"""
+
+        return TutorialProgress.for_user(user, self)
+
+    def get_proxy_for_user(self, user):
+        progress = self.get_progress_for_user(user)
+        return TutorialPageProxy(self, progess)
+
+
+class TutorialPageProxy:
+    def __init__(self, tutorial, progress):
+        self.tutorial = tutorial
+        self.progess = progress
+        self.body = copy.deepcopy(tutorial.body)
+
+    def __getattr__(self, attr):
+        return getattr(self.tutorial, attr)
+
+
+
+class TutorialProgress(models.Model):
+    user = models.ForeignKey(User)
+    tutorial = models.ForeignKey(TutorialPage)
+
+    @classmethod
+    def for_user(cls, user, tutorial):
+        """fdgdfgdfgd"""
+
+        try:
+            return cls.objects.get(user=user, tutorial=tutorial)
+        except cls.DoesNotExist:
+            return cls.objects.create(user=user, tutorial=tutorial)
+
+
+class InputBlockProgress(models.Model):
+    progress = models.ForeignKey(TutorialProgress)
+    ref = models.JSONField()
+
+
+
+
+
