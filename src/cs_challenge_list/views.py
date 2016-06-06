@@ -12,7 +12,7 @@ def index(request):
 
 def challenge_list_detail(request, pk):
     challenge_list = get_object_or_404(models.ChallengeList, pk=pk)
-    questions = challenge_list.challenge_question.all()
+    questions = challenge_list.questions.all()
 
     return render_context(
             request,

@@ -4,4 +4,3 @@ from .models import *
 # Register your models here.
 admin.site.register(ChallengeList)
 admin.site.register(ChallengeQuestion)
-admin.site.register(ChallengeListRank)
