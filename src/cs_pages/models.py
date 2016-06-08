@@ -86,7 +86,7 @@ class userInputBlock(CodeBlock):
         return mark_safe(data)            
 
 
-class HomePage(Page):
+class TutorialPage(Page):
     body = StreamField([
         ('heading', blocks.CharBlock(classname="full title")),
         ('paragraph', blocks.RichTextBlock()),
@@ -100,7 +100,7 @@ class HomePage(Page):
         StreamFieldPanel('body'),
     ]
 
-    template = 'cs_pages/home_page.jinja2'
+    template = 'cs_pages/tutorial_page.jinja2'
 
     def get_input_code_source_from_id(self, id_code):
         pass
