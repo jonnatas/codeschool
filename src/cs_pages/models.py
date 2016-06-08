@@ -1,4 +1,4 @@
-from django.db import models
+from codeschool import models
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
 from django import forms
@@ -92,7 +92,7 @@ class TutorialPage(Page):
         ('paragraph', blocks.RichTextBlock()),
         ('code', CodeBlock()),
         ('interactive_code', InputCodeBlock()),
-        ('user_input', userInputBlock()),
+        ('skulpt_python_code', userInputBlock()),
         ('image', ImageChooserBlock()),
     ])
 
@@ -102,5 +102,42 @@ class TutorialPage(Page):
 
     template = 'cs_pages/tutorial_page.jinja2'
 
-    def get_input_code_source_from_id(self, id_code):
-        pass
+    def get_progress_for_user(self, user):
+        """dsfsdfsd"""
+
+        return TutorialProgress.for_user(user, self)
+
+    def get_proxy_for_user(self, user):
+        progress = self.get_progress_for_user(user)
+        return TutorialPageProxy(self, progess)
+
+
+class TutorialPageProxy:
+    def __init__(self, tutorial, progress):
+        self.tutorial = tutorial
+        self.progess = progress
+        self.body = copy.deepcopy(tutorial.body)
+
+    def __getattr__(self, attr):
+        return getattr(self.tutorial, attr)
+
+
+
+class TutorialProgress(models.Model):
+    user = models.ForeignKey(User)
+    tutorial = models.ForeignKey(TutorialPage)
+
+    @classmethod
+    def for_user(cls, user, tutorial):
+        """fdgdfgdfgd"""
+
+        try:
+            return cls.objects.get(user=user, tutorial=tutorial)
+        except cls.DoesNotExist:
+            return cls.objects.create(user=user, tutorial=tutorial)
+
+
+class InputBlockProgress(models.Model):
+    progress = models.ForeignKey(TutorialProgress)
+    ref = models.JSONField()
+
