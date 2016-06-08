@@ -40,8 +40,11 @@ INSTALLED_APPS = [
     'cs_search',
     'cs_auth',
     'cs_courses',
-    'cs_questions',
     'cs_activities',
+    'cs_questions',
+    'cs_polls',
+    'cs_battles',
+    'cs_pbl',
     'viewpack',
     'srvice',
 
@@ -105,7 +108,7 @@ AUTHENTICATION_BACKENDS = (
     'guardian.backends.ObjectPermissionBackend',
     'django.contrib.auth.backends.ModelBackend',
 )
-ANONYMOUS_USER_ID = -1
+ANONYMOUS_USER_ID = 1
 AUTH_PROFILE_MODULE = 'cs_auth.Profile'
 
 

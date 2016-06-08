@@ -61,6 +61,7 @@ setup(
         'django>=1.9',
         'django-model-utils',
         'django-picklefield',
+        'pygments',
         'wagtail',
         'frozendict',
         'markdown',
@@ -81,13 +82,18 @@ setup(
         'django-address',
         'django-userena',
         'boxed>=0.3',
-        
-        # These are vendorized until stabilize
-        #'django-viewpack', 
+        'psutil',
+        'pexpect',
+        'unidecode',
+        'fake-factory',
+        'pygeneric',
+        'lazy',
+
+        # These are vendorized until they stabilize
+        #'django-viewpack',
         #'ejudge>=0.3.6',
         #'iospec>=0.2.2',
         #'markio>=0.1.2',
-        
     ],
     extras_require={
         'testing': ['pytest'],

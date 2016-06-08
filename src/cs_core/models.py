@@ -1,3 +1,4 @@
+import collections
 from django.utils.translation import ugettext as __, ugettext_lazy as _
 from codeschool import models
 from codeschool.db import ask_use_db
@@ -13,6 +14,8 @@ default_languages = {
 
 default_aliases = {
     'gcc': 'c',
+    'g++': 'cpp',
+    'c++': 'cpp',
     'python3': 'python',
 }
 
@@ -29,9 +32,9 @@ class ProgrammingLanguage(models.Model):
         """Return the programming language object from the given ref."""
 
         try:
+            ref = default_aliases.get(ref, ref)
             return cls.objects.get(ref=ref)
         except cls.DoesNotExist:
-            ref = default_aliases.get(ref, ref)
             name = default_languages.get(ref)
             if ref is None:
                 raise
@@ -84,7 +87,7 @@ def get_language(ref, use_db=None):
 
 
 def get_languages(use_db=None):
-    """Return a list with all languages in alphabetical order."""
+    """Return an iterator with all languages in alphabetical order."""
 
     # Get initial list
     if ask_use_db(use_db):

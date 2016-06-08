@@ -2,41 +2,55 @@ from django.utils import timezone
 from django.core.urlresolvers import reverse as url_reverse
 from django.utils.translation import ugettext_lazy as _
 from autoslug import AutoSlugField
-from wagtail.wagtailcore.fields import RichTextField
 from codeschool import models
 from cs_activities.models import Activity
+from cs_auth.models import FriendshipStatus
 
 
 #
 # Main model classes
 #
-class Faculty(models.Model):
+class Faculty(models.DescribableModel):
     """Describes a faculty/department or any institution that is responsible for
      some given discipline"""
 
-    name = models.CharField(_('name'), max_length=200)
-    description = RichTextField(_('description'), blank=True)
 
-
-class Discipline(models.Model):
+class Discipline(models.DescribableModel):
     """A discipline represents one abstract academic discipline.
 
     Each discipline can be associated with many courses."""
 
-    name = models.CharField(_('name'), max_length=200)
     abbreviation = AutoSlugField(populate_from='name')
-    short_description = models.TextField(_('short description'))
-    long_description = RichTextField(_('long description'))
 
     def __str__(self):
         return '%s (%s)' % (self.name, self.abbreviation)
+
+
+class CourseQueryset(models.QuerySet):
+    def auth(self, user, role=None):
+        """
+        Filter to only courses that the given user can see.
+
+        An optional role can be added so only courses in which the user is
+        related with the specific role are considered. Valid roles are
+        'teacher', 'student' or 'staff'.
+        """
+
+        qs = self.none()
+
+        if role is None or role in ['student', 'can_view']:
+            qs |= user.enrolled_courses.all()
+        if role is None or role in ['staff', 'can_view']:
+            qs |= user.courses_as_staff.all()
+        if role is None or role in ['teacher', 'can_edit']:
+            qs |= self.filter(teacher=user)
+        return qs.distinct()
 
 
 class Course(models.DateFramedModel, models.TimeStampedModel):
     """One specific occurrence of a course for a given teacher in a given
     period."""
 
-    # Fields
     discipline = models.ForeignKey(
         Discipline,
         related_name='courses'
@@ -58,38 +72,93 @@ class Course(models.DateFramedModel, models.TimeStampedModel):
     current_lesson_index = models.PositiveIntegerField(default=0, blank=True)
     current_lesson_start = models.DateField(blank=True, null=True)
     is_active = models.BooleanField(_('is active'), default=False)
+    objects = CourseQueryset.as_manager()
+
+    # Discipline properties
+    name = property(lambda x: x.discipline.name)
+    short_description = property(lambda x: x.discipline.short_description)
+    long_description = property(lambda x: x.discipline.long_description)
+    short_description_html = property(lambda x:
+                                      x.discipline.short_description_html)
+    long_description_html = property(lambda x:
+                                     x.discipline.long_description_html)
+
+    # Other properties
+    owner = property(lambda x: x.teacher)
+
+    def __str__(self):
+        return '%s (%s)' % (self.discipline.name, self.teacher.first_name)
+
+    def to_file(self):
+        """Serialize object in a Markdown format."""
+
+    @classmethod
+    def from_file(self, file):
+        """Load course from file."""
+
+    def register_student(self, student):
+        """
+        Register a new student in the course.
+        """
+
+        self.students.add(student)
+        self.update_friendship_status(student)
+
+    def update_friendship_status(self, student=None):
+        """
+        Recompute the friendship status for a single student by marking it as
+        a colleague of all participants in the course..
+
+        If no student is given, update the status of all enrolled students.
+        """
+
+        update = self._update_friendship_status
+        if student is None:
+            for student in self.students.all():
+                update(student)
+        else:
+            update(student)
+
+    def _update_friendship_status(self, student):
+        # Worker function for update_friendship_status
+        colleague_status = FriendshipStatus.STATUS_COLLEAGUE
+        for colleague in self.students.all():
+            if colleague != student:
+                try:
+                   FriendshipStatus.objects.get(owner=student,
+                                                other=colleague)
+                except FriendshipStatus.DoesNotExist:
+                    FriendshipStatus.objects.create(owner=student,
+                                                    other=colleague,
+                                                    status=colleague_status)
 
     # Managers
     @property
     def past_activities(self):
         return (
-            self.activities.filter(status=Activity.STATUS.concluded) |
+            self.activities.filter(status=Activity.STATUS_CLOSED) |
             self.activities.filter(end__lt=timezone.now())
         ).select_subclasses()
 
     @property
     def open_activities(self):
-        return (self.activities.timeframed.all() &
-                self.activities.filter(status=Activity.STATUS.open)).select_subclasses()
+        return (
+            self.activities.timeframed.all() &
+            self.activities.filter(status=Activity.STATUS_OPEN)
+        ).select_subclasses()
 
     @property
     def pending_activities(self):
-        return (self.activities.filter(status=Activity.STATUS.draft) |
-                (self.activities.filter(status=Activity.STATUS.open) &
-                 self.activities.filter(end__lt=timezone.now()))).select_subclasses()
-
-    # Use information from discipline
-    name = property(lambda s: s.discipline.name)
-    short_description = property(lambda s: s.discipline.short_description)
-    long_description = property(lambda s: s.discipline.long_description)
-
-    def __str__(self):
-        return '%s (%s)' % (self.discipline.name, self.teacher.first_name)
+        return (
+            self.activities.filter(status=Activity.STATUS_DRAFT) |
+            (self.activities.filter(status=Activity.STATUS_OPEN) &
+             self.activities.filter(end__lt=timezone.now()))
+        ).select_subclasses()
 
     def get_absolute_url(self):
         return url_reverse('course-detail', args=(self.pk,))
 
-    def role(self, user):
+    def get_user_role(self, user):
         """Return a string describing the most priviledged role the user
         as in the course. The possible values are:
 
@@ -113,13 +182,19 @@ class Course(models.DateFramedModel, models.TimeStampedModel):
             return 'student'
         return 'visitor'
 
-    def user_activities(self, user):
-        """Return a list of all activities that are valid for the given user"""
+    def get_user_activities(self, user):
+        """
+        Return a sequence of all activities that are still open for the user.
+        """
 
-        return self.activities.select_subclasses()
+        activities = self.activities.filter(status=Activity.STATUS_OPEN)
+        return activities.select_subclasses()
 
     def activity_duration(self):
-        """Return the default duration for an activity starting from now."""
+        """
+        Return the default duration (in minutes) for an activity starting from
+        now.
+        """
 
         return 120
 
@@ -133,6 +208,12 @@ class Course(models.DateFramedModel, models.TimeStampedModel):
 
     def next_date(self, date=None):
         """Return the date of the next available time slot."""
+
+    def can_view(self, user):
+        return True
+
+    def can_edit(self, user):
+        return user == self.teacher
 
 
 class TimeSlot(models.Model):
@@ -171,7 +252,7 @@ class Lesson(models.ListItemModel):
 
 
 # Patch models
-Course.lessons = Lesson.get_descriptor()
+Course.lessons = Lesson.as_items()
 models.User.related_courses = property(
         lambda self:
             (self.enrolled_courses.all() |
