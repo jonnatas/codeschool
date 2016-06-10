@@ -1,0 +1,23 @@
+{% extends "base.jinja2" %}
+
+{% block style %}
+    {{ super() }}
+    <style>
+        .toolbar.highlight.user-toolbar {
+            display: flex;
+            justify-content: space-between;
+            padding-left: 40px;
+            padding-right: 40px;
+            color: white;
+        }
+        .user-toolbar.toolbar.highlight a {
+            display: block;
+        }
+        #content-area main > *:nth-child(odd) {
+            background-color: green;
+        }
+        #content_head a {
+            color:white;
+        }
+    </style>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "cs_challenge_list/style.jinja2" %}
+{% block content_head %}
+  <h1> {{ _('Challenge Lists') }} </h1>
+  <div class="user-toolbar toolbar highlight">
+    <a href="/challenges">{{ _("My Lists")  }}</a>
+    <a href="/challenges/new">{{ _("New Challenge")  }}</a>
+    <a href="#">{{ _("Global Rank")  }}</a>
+    <a href="#">{{ _("What's Hot")  }}</a>
+  </div>
+{% endblock %}
+
+

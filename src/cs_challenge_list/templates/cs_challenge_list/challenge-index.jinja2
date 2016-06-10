@@ -1,22 +1,15 @@
-{% extends "base.jinja2" %}
+{% extends "cs_challenge_list/base.jinja2" %}
 
-{% block content %}
-
-<div>
-    <aside>
-      <h1>My Challenge List</h1>
-    </aside>
-
-    <ul id="navigation">
-      {% for list in challenge_lists -%}
-      <li class="">
-        <a href="/challenges/{{list.pk}}">
-          <h1> List Name {{ list.name }}</h1>
-        </a>
-      </li>
-      {%- endfor %}
-    </ul>
-</div>
-
+{% block content_body %}
+  <ul id="navigation">
+    {% for list in challenge_lists -%}
+      <h3> List Name {{ list.name }}</h3>
+      <p> {{list.short_description}} </p>
+      <a class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--raised"
+          href="/challenges/{{list.pk}}" >
+          {{ _("View") }}
+      </a>
+    {%- endfor %}
+  </ul>
 {% endblock %}
 
