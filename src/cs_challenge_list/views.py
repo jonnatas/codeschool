@@ -10,6 +10,16 @@ def index(request):
             'cs_challenge_list/challenge-index.jinja2',
             challenge_lists)
 
+def new(request):
+    return render_context(
+             request,
+             'cs_challenge_list/new.jinja2')
+
+def rank(request):
+    return render(
+            request,
+            'cs_challenge_list/challenge-rank.jinja2')
+
 def challenge_list_detail(request, pk):
     challenge_list = get_object_or_404(models.ChallengeList, pk=pk)
     questions = challenge_list.questions.all()
@@ -20,7 +30,12 @@ def challenge_list_detail(request, pk):
             challenge_list=challenge_list,
             questions=questions)
 
-def rank(request):
-    return render(
-            request,
-            'cs_challenge_list/challenge-rank.jinja2')
+def challenge_question(request,list_pk,question_pk):
+    challenge_list = get_object_or_404(models.ChallengeList, pk=list_pk)
+    question = get_object_or_404(models.ChallengeQuestion, pk=question_pk)
+
+    return render_context(
+             request,
+             'cs_challenge_list/question-detail.jinja2',
+             challenge_list=challenge_list,
+             question=question)
