@@ -1,3 +1,4 @@
+import copy
 from codeschool import models
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
@@ -111,6 +112,14 @@ class TutorialPage(Page):
         progress = self.get_progress_for_user(user)
         return TutorialPageProxy(self, progess)
 
+    def get_context(self, request):
+        progress = self.get_progress_for_user(request.user)
+        context = super().get_context(request)
+        context.update({
+            'progress': progress, 
+            'body': progress.get_updated_body()
+        })
+        return context
 
 class TutorialPageProxy:
     def __init__(self, tutorial, progress):
@@ -127,6 +136,8 @@ class TutorialProgress(models.Model):
     user = models.ForeignKey(User)
     tutorial = models.ForeignKey(TutorialPage)
 
+
+
     @classmethod
     def for_user(cls, user, tutorial):
         """fdgdfgdfgd"""
@@ -135,6 +146,17 @@ class TutorialProgress(models.Model):
             return cls.objects.get(user=user, tutorial=tutorial)
         except cls.DoesNotExist:
             return cls.objects.create(user=user, tutorial=tutorial)
+
+    def get_updated_body(self):
+        body = TutorialPage.objects.get(pk=self.tutorial.pk).body
+        body_block = CodeBlock()
+
+        for block in body:
+            if isinstance(block.block, (userInputBlock, InputCodeBlock)):
+                body_block = block
+
+
+        return block
 
 
 class InputBlockProgress(models.Model):
