@@ -149,14 +149,14 @@ class TutorialProgress(models.Model):
 
     def get_updated_body(self):
         body = TutorialPage.objects.get(pk=self.tutorial.pk).body
-        body_block = CodeBlock()
+        code_block = CodeBlock()
 
         for block in body:
             if isinstance(block.block, (userInputBlock, InputCodeBlock)):
-                body_block = block
+                code_block = block
 
-
-        return block
+        print (code_block)
+        return body
 
 
 class InputBlockProgress(models.Model):
