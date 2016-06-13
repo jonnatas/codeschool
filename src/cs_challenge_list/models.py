@@ -8,6 +8,15 @@ class ChallengeList(models.Model):
     name = models.CharField(max_length=50)
     long_description = models.TextField(blank=True)
     short_description = models.TextField(blank=True)
+    owner = models.ForeignKey(
+        models.User,
+        blank=True,
+        null=True,
+    )
+
+    def filter_by_user(request):
+        challenge_lists = ChallengeList.objects.filter(owner=request.user)
+        return challenge_lists
 
     def __str__(self):
         return self.name

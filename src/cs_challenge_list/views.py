@@ -4,7 +4,7 @@ from codeschool.shortcuts import render_context, get_object_or_404, redirect
 
 def index(request):
     challenge_lists = dict()
-    challenge_lists['challenge_lists'] = models.ChallengeList.objects.all() # TODO: change this to get the challenge lists of the user
+    challenge_lists['challenge_lists'] = models.ChallengeList.filter_by_user(request)
     return render(
             request,
             'cs_challenge_list/challenge-index.jinja2',
