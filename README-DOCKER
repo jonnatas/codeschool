@@ -1,0 +1,15 @@
+For using the dev-env you have to do the follow steps:
+    1. apt-get install docker
+    2. apt-get install docker.io
+    3. sudo docker pull gutorc92/codeschool
+    4. sudo docker run -t -i -p 8001:8000 -v {codeschool files on host machine}:/usr/src/ codeschool /bin/bash 
+    5. cd /usr/src/src
+    6. python manage runserver 0.0.0.0:8000
+    7. Go to your web broser and try localhost:8001
+
+If you already have docker e the codeschool image, you do not need to execute the steps from 1 to 3.
+In order to have the newest version of the codeschool image, it should be a good practice pull the repository
+before running the container. 
+The command 6 have to be execute using the address 0.0.0.0 for permitting access from outside de container.
+Once the host machine port 8001 is being used, you can choose another one.
+
