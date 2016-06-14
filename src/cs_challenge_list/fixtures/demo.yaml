@@ -1,0 +1,20 @@
+- model: cs_challenge_list.ChallengeList
+  pk: 1
+  fields:
+    name: "Challenge List 01"
+    long_description: "Long description 01"
+    short_description: "Short description 01"
+
+- model: cs_challenge_list.ChallengeList
+  pk: 2
+  fields:
+    name: "Challenge List 02"
+    long_description: "Long description 02"
+    short_description: "Short description 02"
+
+- model: cs_challenge_list.ChallengeList
+  pk: 3
+  fields:
+    name: "Challenge List 03"
+    long_description: "Long description 03"
+    short_description: "Short description 03"

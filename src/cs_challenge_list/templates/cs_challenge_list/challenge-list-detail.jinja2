@@ -1,0 +1,26 @@
+{% extends "cs_challenge_list/base.jinja2" %}
+
+{% block content_head %}
+    <h1>{{challenge_list.name}}</h1>
+{% endblock %}
+
+{% block content_body %}
+
+    <h4>List name:</h4> <p>{{challenge_list.name}} </p>
+    <h4>List long description:</h4> <p>{{challenge_list.long_description}}</p>
+    <h4>List short description:</h4> <p>{{challenge_list.short_description}}</p>
+    <h4>Questions:</h4>
+    {% for question in questions -%}
+        <a class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--raised"
+            href="/challenges/{{challenge_list.pk}}/{{question.pk}}" >
+            {{ _(question.name) }}
+        </a>
+    {%- endfor %}<br>
+
+      <br>
+    <a class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--raised"
+        href="#" >
+        {{ _("Edit") }}
+    </a>
+
+{% endblock %}
