@@ -2,6 +2,7 @@ import collections
 import pprint
 import copy
 from generic import generic
+from unidecode import unidecode
 
 
 __all__ = [
@@ -73,6 +74,12 @@ class Atom(collections.UserString):
         new = copy.copy(self)
         new.data = func(new.data)
         return new
+
+    def normalize_presentation(self):
+        """Normalize string to compare with other strings when looking for
+        presentation errors."""
+
+        return self.transform(lambda x: unidecode(x.casefold().strip()))
 
     def to_json(self):
         """Return a pair of [type_name, data] that can be converted to valid
@@ -402,6 +409,8 @@ class IoSpec(LinearNode):
         else:
             # Expand to reach len(self) == size
             diff = size - len(self)
+            if not diff:
+                return
             pairs = [[case.priority, case] for case in self]
             total_priority = max(sum(x[0] for x in pairs), 1)
             for x in pairs:

@@ -9,6 +9,8 @@ class ActivityCRUD(InheritanceCRUDViewPack):
     model = models.Activity
     template_extension = '.jinja2'
     template_basename = 'cs_activities/'
+    check_permissions = True
+    raise_404_on_permission_error = True
     context_data = {
         'content_color': "#589cbc",
         'set object_name': _('activity'),
@@ -23,11 +25,11 @@ class GenericActivityViews(CRUDViewPack):
 
 @ActivityCRUD.register
 class SyncCodeActivityViews(CRUDViewPack):
-   model = models.SyncCodeActivity
-   template_basename = 'cs_activities/sync-code/'
+    model = models.SyncCodeActivity
+    template_basename = 'cs_activities/sync-code/'
 
 
-@srvice.srvice
+@srvice.api
 def code_sync_update(request, pk=None, data=None):
     # Check permissions
     activity = models.SyncCodeActivity.objects.get(pk=pk)
@@ -43,7 +45,7 @@ def code_sync_update(request, pk=None, data=None):
             last.save(update_fields=['next'])
 
 
-@srvice.srvice
+@srvice.api
 def code_sync_remove(request, pk=None, item=None):
     # Check permissions
     activity = models.SyncCodeActivity.objects.get(pk=pk)
@@ -66,7 +68,7 @@ def code_sync_remove(request, pk=None, item=None):
         item.delete()
 
 
-@srvice.srvice
+@srvice.api
 def code_sync_get(request, pk=None, item=None, jump=None):
     # Check permissions
     activity = models.SyncCodeActivity.objects.get(pk=pk)

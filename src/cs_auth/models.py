@@ -242,15 +242,21 @@ class AllowedUsernameListing(models.Model):
 
 
 class FriendshipStatus(models.StatusModel):
+    """
+    Defines the friendship status between two users.
+    """
+    STATUS_PENDING = 'pending'
+    STATUS_FRIEND = 'friend'
+    STATUS_UNFRIEND = 'unfriend'
+    STATUS_COLLEAGUE = 'colleague'
     STATUS = models.Choices(
-        ('pending', _('pending')),
-        ('friend', _('friend')),
-        ('acquaintance', _('acquaintance')),
-        ('unfriend', _('unfriend'))
+        (STATUS_PENDING, _('pending')),
+        (STATUS_FRIEND, _('friend')),
+        (STATUS_UNFRIEND, _('unfriend')),
+        (STATUS_COLLEAGUE,_('colleague'))
     )
-
-    owner = models.ForeignKey(models.User, related_name='associated')
-    other = models.ForeignKey(models.User, related_name='associated_as_other')
+    owner = models.ForeignKey(models.User, related_name='related_users')
+    other = models.ForeignKey(models.User, related_name='related_users_as_other')
 
     class Meta:
         unique_together = ('owner', 'other'),
@@ -261,14 +267,18 @@ class FriendshipStatus(models.StatusModel):
         try:
             FriendshipStatus.objects.get(owner=self.other, other=self.owner)
         except FriendshipStatus.DoesNotExist:
-            FriendshipStatus(
-                    owner=self.other,
-                    other=self.owner,
-                    status='pending').save()
+            reciprocal = FriendshipStatus(owner=self.other, other=self.owner)
+            if self.status == self.STATUS_COLLEAGUE:
+                reciprocal.status = self.STATUS_COLLEAGUE
+            else:
+                reciprocal.status = self.STATUS_PENDING
+            reciprocal.save()
+                                
 
-
-# Mokey patch the user class
 class UserMixin:
+    """
+    Mokey-patch the user class with some additional methods and attributes.
+    """
     @property
     def is_student(self):
         return ...
@@ -279,27 +289,34 @@ class UserMixin:
 
     @property
     def is_person(self):
-        return hasattr(self, 'person')
+        return hasattr(self, 'profile')
 
     def _filtered(self, status):
-        pks = self.associated.filter(status=status)\
+        pks = (
+            self.related_users
+            .filter(status=status)
             .values_list('other', flat=True)
+        )
         return models.User.objects.filter(pk__in=pks).order_by('first_name', 'username')
 
     @property
     def friends(self):
+        """A queryset with all the users's friends."""
+
         return self._filtered('friend')
 
     @property
     def unfriends(self):
+        """A queryset with all users the that were un-friended by the current
+        user."""
+
         return self._filtered('unfriend')
 
     @property
-    def acquaintances(self):
-        return self._filtered('acquaintance')
-
-    @property
     def friends_pending(self):
+        """A queryset with users that have a pending friendship request
+        waiting to be accepted or rejected."""
+
         return self._filtered('pending')
 
     def _multi_select(self, field):
@@ -315,14 +332,20 @@ class UserMixin:
 
     @property
     def colleagues(self):
+        """A queryset of all user's colleagues."""
+
         return self._multi_select('students')
 
     @property
     def staff_contacts(self):
+        """A queryset of all staff members to the user's courses."""
+
         return self._multi_select('staff')
 
     @property
     def teacher_contacts(self):
+        """A queryset of all teachers in the user's enrolled courses."""
+
         pks = self.enrolled_courses.values_list('teacher', flat=True)
         return models.User.objects.filter(pk__in=pks).distinct()
 

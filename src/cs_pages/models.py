@@ -136,8 +136,6 @@ class TutorialProgress(models.Model):
     user = models.ForeignKey(User)
     tutorial = models.ForeignKey(TutorialPage)
 
-
-
     @classmethod
     def for_user(cls, user, tutorial):
         """fdgdfgdfgd"""
@@ -149,17 +147,26 @@ class TutorialProgress(models.Model):
 
     def get_updated_body(self):
         body = TutorialPage.objects.get(pk=self.tutorial.pk).body
-        code_block = CodeBlock()
 
-        for block in body:
-            if isinstance(block.block, (userInputBlock, InputCodeBlock)):
-                code_block = block
-
-        print (code_block)
         return body
 
 
 class InputBlockProgress(models.Model):
     progress = models.ForeignKey(TutorialProgress)
-    ref = models.JSONField()
+    body = progress.get_updated_body()
+
+    refs = []
+
+    for block in body:
+        if isinstance(block.block, InputCodeBlock):
+            ref_dict = {
+                "language" : block.block.child_blocks["language"] ,
+                "id" : block.block.child_blocks["block_id"]
+            }
+
+            refs.append[ref_dict]
+
+    def get_input_code_source_from_id(self, id_code):
+        pass
+
 
