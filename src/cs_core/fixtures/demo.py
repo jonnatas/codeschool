@@ -10,8 +10,8 @@ with open(fname) as F:
     users = serializers.deserialize('yaml', F)
     for user in users:
         user.save()
-        user.profile.about_me = 'Automatic user'
-        user.profile.save()
+        #user.profile.about_me = 'Automatic user'
+        #user.profile.save()
 
 # Load courses
 with open('course-data.yaml') as F:
