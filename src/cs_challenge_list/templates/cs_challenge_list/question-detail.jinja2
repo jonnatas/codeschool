@@ -1,0 +1,10 @@
+{% extends "cs_challenge_list/base.jinja2" %}
+
+{% block content_body %}
+  <p> {{question.author_name}} </p>
+  <p> {{question.owner}} </p>
+  <h1> {{question.name}} </h1>
+  <p> {{question.timeout}} </p>
+  <p> {{question.status}} </p>
+  <p> {{question.long_description}} </p>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "cs_challenge_list/base.jinja2" %}
+
+{% block content_body %}
+  <ul id="navigation">
+    {% for list in challenge_lists -%}
+      <h3> List Name {{ list.name }}</h3>
+      <p> {{list.short_description}} </p>
+      <a class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--raised"
+          href="/challenges/{{list.pk}}" >
+          {{ _("View") }}
+      </a>
+    {%- endfor %}
+  </ul>
+{% endblock %}
+
