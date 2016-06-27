@@ -19,6 +19,9 @@ from codeschool.models import User
 
 
 class LanguageChooserBlock(blocks.ChooserBlock):
+    """ 
+    Block that let user choose a language
+    """
     target_model = ProgrammingLanguage
     widget = forms.Select
 
@@ -31,7 +34,7 @@ class LanguageChooserBlock(blocks.ChooserBlock):
 
 class CodeBlock(blocks.StructBlock):
     """
-    Code Highlighting Block
+    Code Highlighting Block (pygments)
     """
     LANGUAGE_CHOICES = (
         ('python', 'Python'),
@@ -63,7 +66,9 @@ class CodeBlock(blocks.StructBlock):
 
 
 class InputCodeBlock(CodeBlock):
-    """interative code blocks """
+    """
+    interative code blocks 
+    """
     
     block_id = blocks.CharBlock(max_length=50)
 
@@ -75,7 +80,9 @@ class InputCodeBlock(CodeBlock):
         return mark_safe(data)
 
 class userInputBlock(CodeBlock):
-    """interative code blocks """
+    """
+    interative code blocks
+    """
 
     expected_result = blocks.TextBlock()
     
@@ -87,6 +94,9 @@ class userInputBlock(CodeBlock):
 
 
 class TutorialPage(Page):
+    """
+    A wagtail tutorial page
+    """
     body = StreamField([
         ('heading', blocks.CharBlock(classname="full title")),
         ('paragraph', blocks.RichTextBlock()),
