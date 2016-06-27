@@ -15,6 +15,7 @@ from pygments.formatters import get_formatter_by_name
 from pygments.lexers import get_lexer_by_name
 
 from cs_core.models import ProgrammingLanguage
+from codeschool.utils import lazy
 from codeschool.models import User
 
 
@@ -109,7 +110,7 @@ class TutorialPage(Page):
     content_panels = Page.content_panels + [
         StreamFieldPanel('body'),
     ]
-
+    
     template = 'cs_pages/tutorial_page.jinja2'
 
     def get_progress_for_user(self, user):
@@ -162,18 +163,22 @@ class TutorialProgress(models.Model):
 
 class InputBlockProgress(models.Model):
     progress = models.ForeignKey(TutorialProgress)
-    body = progress.get_updated_body()
+    
+    @lazy
+    def body(self):
+        return self.progress.get_updated_body()
 
-    refs = []
+    def ref_block(self):
+        refs = []
 
-    for block in body:
-        if isinstance(block.block, InputCodeBlock):
-            ref_dict = {
-                "language" : block.block.child_blocks["language"] ,
-                "id" : block.block.child_blocks["block_id"]
-            }
+        for block in body:
+            if isinstance(block.block, InputCodeBlock):
+                ref_dict = {
+                    "language" : block.block.child_blocks["language"] ,
+                    "id" : block.block.child_blocks["block_id"]
+                }
 
-            refs.append[ref_dict]
+                refs.append[ref_dict]
 
     def get_input_code_source_from_id(self, id_code):
         pass

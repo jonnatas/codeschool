@@ -37,7 +37,7 @@ INSTALLED_APPS = [
     # Local apps
     'cs_core',
     'cs_messages',
-    #'cs_pages',
+    'cs_pages',
     #'cs_search',
     # 'cs_auth',
     # 'cs_courses',
