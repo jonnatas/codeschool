@@ -80,13 +80,11 @@ class InputCodeBlock(CodeBlock):
         data = '<ace-editor mode="%s" id="input-code-%s">%s</ace-editor>' % (lang, id_value, code)
         return mark_safe(data)
 
-class userInputBlock(CodeBlock):
+class SkulptBlock(CodeBlock):
     """
     interative code blocks
     """
-
-    expected_result = blocks.TextBlock()
-    
+        
     def render(self, value):
         lang = 'python'
         code = escape(value['code'])
@@ -101,9 +99,9 @@ class TutorialPage(Page):
     body = StreamField([
         ('heading', blocks.CharBlock(classname="full title")),
         ('paragraph', blocks.RichTextBlock()),
-        ('code', CodeBlock()),
+        ('print_code', CodeBlock()),
         ('interactive_code', InputCodeBlock()),
-        ('skulpt_python_code', userInputBlock()),
+        ('skulpt_python_code', SkulptBlock()),
         ('image', ImageChooserBlock()),
     ])
 
@@ -114,8 +112,9 @@ class TutorialPage(Page):
     template = 'cs_pages/tutorial_page.jinja2'
 
     def get_progress_for_user(self, user):
-        """dsfsdfsd"""
-
+        """
+        Get all tutorial progress made by user
+        """
         return TutorialProgress.for_user(user, self)
 
     def get_proxy_for_user(self, user):
@@ -160,15 +159,9 @@ class TutorialProgress(models.Model):
 
         return body
 
+    def get_updated_block(self):
+        body = self.get_updated_body(self)
 
-class InputBlockProgress(models.Model):
-    progress = models.ForeignKey(TutorialProgress)
-    
-    @lazy
-    def body(self):
-        return self.progress.get_updated_body()
-
-    def ref_block(self):
         refs = []
 
         for block in body:
@@ -178,7 +171,12 @@ class InputBlockProgress(models.Model):
                     "id" : block.block.child_blocks["block_id"]
                 }
 
+                print(refs)
                 refs.append[ref_dict]
+
+
+class InputBlockProgress(models.Model):
+    progress = models.ForeignKey(TutorialProgress)
 
     def get_input_code_source_from_id(self, id_code):
         pass
