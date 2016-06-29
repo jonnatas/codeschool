@@ -23,6 +23,7 @@ class LanguageChooserBlock(blocks.ChooserBlock):
     """ 
     Block that let user choose a language
     """
+
     target_model = ProgrammingLanguage
     widget = forms.Select
 
@@ -84,7 +85,7 @@ class SkulptBlock(CodeBlock):
     """
     interative code blocks
     """
-        
+
     def render(self, value):
         lang = 'python'
         code = escape(value['code'])
@@ -94,8 +95,9 @@ class SkulptBlock(CodeBlock):
 
 class TutorialPage(Page):
     """
-    A wagtail tutorial page
+    wagtail tutorial page
     """
+
     body = StreamField([
         ('heading', blocks.CharBlock(classname="full title")),
         ('paragraph', blocks.RichTextBlock()),
@@ -113,11 +115,16 @@ class TutorialPage(Page):
 
     def get_progress_for_user(self, user):
         """
-        Get all tutorial progress made by user
+        get all tutorial progress made by user
         """
+
         return TutorialProgress.for_user(user, self)
 
     def get_proxy_for_user(self, user):
+        """
+        get a tutorial page proxy for the current user
+        """
+
         progress = self.get_progress_for_user(user)
         return TutorialPageProxy(self, progess)
 
@@ -131,6 +138,10 @@ class TutorialPage(Page):
         return context
 
 class TutorialPageProxy:
+    """
+    create a proxy of tutorial page
+    """
+
     def __init__(self, tutorial, progress):
         self.tutorial = tutorial
         self.progess = progress
@@ -142,12 +153,19 @@ class TutorialPageProxy:
 
 
 class TutorialProgress(models.Model):
+    """
+    tutorial progress user
+    """
+
     user = models.ForeignKey(User)
     tutorial = models.ForeignKey(TutorialPage)
 
     @classmethod
     def for_user(cls, user, tutorial):
-        """fdgdfgdfgd"""
+        """
+        get the TutorialProgress for the current user if exists
+        if not, create a new tutorial
+        """
 
         try:
             return cls.objects.get(user=user, tutorial=tutorial)
@@ -155,11 +173,19 @@ class TutorialProgress(models.Model):
             return cls.objects.create(user=user, tutorial=tutorial)
 
     def get_updated_body(self):
+        """
+        get the page body updated for user
+        """
+
         body = TutorialPage.objects.get(pk=self.tutorial.pk).body
 
         return body
 
-    def get_updated_block(self):
+    def get_updated_blocks(self):
+        """
+        get all InputCodeBlocks updated for user
+        """
+
         body = self.get_updated_body(self)
 
         refs = []
@@ -176,6 +202,10 @@ class TutorialProgress(models.Model):
 
 
 class InputBlockProgress(models.Model):
+    """
+    progress of InputBlock for current user
+    """
+    
     progress = models.ForeignKey(TutorialProgress)
 
     def get_input_code_source_from_id(self, id_code):
