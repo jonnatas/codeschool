@@ -81,6 +81,7 @@ class InputCodeBlock(CodeBlock):
         data = '<ace-editor mode="%s" id="input-code-%s">%s</ace-editor>' % (lang, id_value, code)
         return mark_safe(data)
 
+
 class SkulptBlock(CodeBlock):
     """
     interative code blocks
@@ -90,7 +91,7 @@ class SkulptBlock(CodeBlock):
         lang = 'python'
         code = escape(value['code'])
         data = '<h3>Try This</h3> <form><ace-editor id="yourcode" mode="python">%s</ace-editor><br /> <button type="button" onclick="runit()">Run</button> </form> <pre id="output" ></pre> <!-- If you want turtle graphics include a canvas --><div id="mycanvas"></div> ' % (code)
-        return mark_safe(data)            
+        return mark_safe(data)
 
 
 class TutorialPage(Page):
@@ -133,9 +134,11 @@ class TutorialPage(Page):
         context = super().get_context(request)
         context.update({
             'progress': progress, 
-            'body': progress.get_updated_body()
+            'body': progress.get_updated_body(),
+            'block': progress.get_updated_blocks()
         })
-        return context
+        return context     
+
 
 class TutorialPageProxy:
     """
@@ -149,7 +152,6 @@ class TutorialPageProxy:
 
     def __getattr__(self, attr):
         return getattr(self.tutorial, attr)
-
 
 
 class TutorialProgress(models.Model):
@@ -186,26 +188,28 @@ class TutorialProgress(models.Model):
         get all InputCodeBlocks updated for user
         """
 
-        body = self.get_updated_body(self)
+        body = self.get_updated_body()
 
         refs = []
 
         for block in body:
             if isinstance(block.block, InputCodeBlock):
                 ref_dict = {
-                    "language" : block.block.child_blocks["language"] ,
-                    "id" : block.block.child_blocks["block_id"]
+                    "language" : block.value["language"] ,
+                    "id" : block.value["block_id"]
                 }
 
-                print(refs)
-                refs.append[ref_dict]
+                refs.append(ref_dict)
+                
+        return refs
+
 
 
 class InputBlockProgress(models.Model):
     """
     progress of InputBlock for current user
     """
-    
+
     progress = models.ForeignKey(TutorialProgress)
 
     def get_input_code_source_from_id(self, id_code):
