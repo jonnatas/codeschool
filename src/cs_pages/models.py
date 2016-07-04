@@ -1,6 +1,7 @@
 from django.db import models
 import copy
 from codeschool import models
+import django.middleware.csrf
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
 from django import forms
@@ -16,7 +17,7 @@ from pygments.formatters import get_formatter_by_name
 from pygments.lexers import get_lexer_by_name
 
 from cs_core.models import ProgrammingLanguage
-from codeschool.utils import lazy
+from codeschool.utils import lazy, delegate_to
 from codeschool.models import User
 
 
@@ -79,7 +80,11 @@ class InputCodeBlock(CodeBlock):
         lang = value['language'].ref
         code = escape(value['code'])
         id_value = value['block_id']
-        data = '<ace-editor mode="%s" id="input-code-%s">%s</ace-editor>' % (lang, id_value, code)
+        html_id = "input-code-%s" % id_value
+        data = (       '''<ace-editor mode="%s" id="input-code-%s">%s</ace-editor>
+            <button onclick="srvice('/tutorial/send-input-block', {id: %r, source: $('#%s')[0].getValue()})">
+            Send</button>'''
+        ) % (lang, id_value, code, id_value, html_id)
         return mark_safe(data)
 
 
@@ -200,18 +205,18 @@ class TutorialProgress(models.Model):
                     "block_id" : block.value["block_id"]
                 }
 
-                self.get_block_for_tutorial(ref_dict["language"], ref_dict["block_id"])
+                self.get_block_for_tutorial(ref_dict["block_id"])
 
                 refs.append(ref_dict)
 
         return refs
 
-    def get_block_for_tutorial(self, language, block_id):
+    def get_block_for_tutorial(self, block_id):
         """
         get all block progress for tutorial
         """
 
-        return InputBlockProgress.for_tutorial(self, language, block_id)
+        return InputBlockProgress.for_tutorial(self, block_id)
 
 
 
@@ -221,19 +226,33 @@ class InputBlockProgress(models.Model):
     """
 
     progress = models.ForeignKey(TutorialProgress)
-    language = models.CharField(max_length=50)
     block_id = models.CharField(max_length=50)
+    user = delegate_to('progress')
+    tutorial = delegate_to('progress')
+    body = delegate_to('tutorial')
+
+    @property
+    def block(self):
+        return self.block
+    
+    @property
+    def value(self):
+        return self.value
+
+    @property
+    def language(self):
+        return self.language
 
     @classmethod
-    def for_tutorial(cls, progress, language, block_id):
+    def for_tutorial(cls, progress, block_id):
         """
         get the block progress for the tutorial
         """
 
         try:
-            return cls.objects.get(progress=progress, language=language, block_id=block_id)
+            return cls.objects.get(progress=progress, block_id=block_id)
         except cls.DoesNotExist:
-            return cls.objects.create(progress=progress, language=language, block_id=block_id)
+            return cls.objects.create(progress=progress, block_id=block_id)
 
 
     def get_input_code_source_from_id(self, id_code):
