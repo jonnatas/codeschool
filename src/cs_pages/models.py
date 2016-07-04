@@ -200,18 +200,18 @@ class TutorialProgress(models.Model):
                     "block_id" : block.value["block_id"]
                 }
 
-                self.get_block_for_tutorial()
+                self.get_block_for_tutorial(ref_dict["language"], ref_dict["block_id"])
 
                 refs.append(ref_dict)
 
         return refs
 
-    def get_block_for_tutorial(self):
+    def get_block_for_tutorial(self, language, block_id):
         """
         get all block progress for tutorial
         """
 
-        return InputBlockProgress.for_tutorial(self)
+        return InputBlockProgress.for_tutorial(self, language, block_id)
 
 
 
@@ -221,17 +221,19 @@ class InputBlockProgress(models.Model):
     """
 
     progress = models.ForeignKey(TutorialProgress)
+    language = models.CharField(max_length=50)
+    block_id = models.CharField(max_length=50)
 
     @classmethod
-    def for_tutorial(cls, progress):
+    def for_tutorial(cls, progress, language, block_id):
         """
         get the block progress for the tutorial
         """
 
         try:
-            return cls.objects.get(progress=progress)
+            return cls.objects.get(progress=progress, language=language, block_id=block_id)
         except cls.DoesNotExist:
-            return cls.objects.create(progress=progress)
+            return cls.objects.create(progress=progress, language=language, block_id=block_id)
 
 
     def get_input_code_source_from_id(self, id_code):
