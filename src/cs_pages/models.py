@@ -197,12 +197,21 @@ class TutorialProgress(models.Model):
             if isinstance(block.block, InputCodeBlock):
                 ref_dict = {
                     "language" : block.value["language"] ,
-                    "id" : block.value["block_id"]
+                    "block_id" : block.value["block_id"]
                 }
+
+                self.get_block_for_tutorial()
 
                 refs.append(ref_dict)
 
         return refs
+
+    def get_block_for_tutorial(self):
+        """
+        get all block progress for tutorial
+        """
+
+        return InputBlockProgress.for_tutorial(self)
 
 
 
@@ -212,7 +221,18 @@ class InputBlockProgress(models.Model):
     """
 
     progress = models.ForeignKey(TutorialProgress)
-    ref = models.JSONField()
+
+    @classmethod
+    def for_tutorial(cls, progress):
+        """
+        get the block progress for the tutorial
+        """
+
+        try:
+            return cls.objects.get(progress=progress)
+        except cls.DoesNotExist:
+            return cls.objects.create(progress=progress)
+
 
     def get_input_code_source_from_id(self, id_code):
         pass
