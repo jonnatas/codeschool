@@ -16,11 +16,15 @@ from pygments.formatters import get_formatter_by_name
 from pygments.lexers import get_lexer_by_name
 
 from cs_core.models import ProgrammingLanguage
+from codeschool.utils import lazy
 from codeschool.models import User
 
 
-
 class LanguageChooserBlock(blocks.ChooserBlock):
+    """ 
+    Block that let user choose a language
+    """
+
     target_model = ProgrammingLanguage
     widget = forms.Select
 
@@ -33,7 +37,7 @@ class LanguageChooserBlock(blocks.ChooserBlock):
 
 class CodeBlock(blocks.StructBlock):
     """
-    Code Highlighting Block
+    Code Highlighting Block (pygments)
     """
     LANGUAGE_CHOICES = (
         ('python', 'Python'),
@@ -65,7 +69,9 @@ class CodeBlock(blocks.StructBlock):
 
 
 class InputCodeBlock(CodeBlock):
-    """interative code blocks """
+    """
+    interative code blocks 
+    """
     
     block_id = blocks.CharBlock(max_length=50)
 
@@ -76,40 +82,51 @@ class InputCodeBlock(CodeBlock):
         data = '<ace-editor mode="%s" id="input-code-%s">%s</ace-editor>' % (lang, id_value, code)
         return mark_safe(data)
 
-class userInputBlock(CodeBlock):
-    """interative code blocks """
 
-    expected_result = blocks.TextBlock()
-    
+class SkulptPythonBlock(CodeBlock):
+    """
+    interative code blocks
+    """
+
     def render(self, value):
         lang = 'python'
         code = escape(value['code'])
         data = '<h3>Try This</h3> <form><ace-editor id="yourcode" mode="python">%s</ace-editor><br /> <button type="button" onclick="runit()">Run</button> </form> <pre id="output" ></pre> <!-- If you want turtle graphics include a canvas --><div id="mycanvas"></div> ' % (code)
-        return mark_safe(data)            
+        return mark_safe(data)
 
 
 class TutorialPage(Page):
+    """
+    wagtail tutorial page
+    """
+
     body = StreamField([
         ('heading', blocks.CharBlock(classname="full title")),
         ('paragraph', blocks.RichTextBlock()),
-        ('code', CodeBlock()),
+        ('print_code', CodeBlock()),
         ('interactive_code', InputCodeBlock()),
-        ('skulpt_python_code', userInputBlock()),
+        ('skulpt_python_code', SkulptPythonBlock()),
         ('image', ImageChooserBlock()),
     ])
 
     content_panels = Page.content_panels + [
         StreamFieldPanel('body'),
     ]
-
+    
     template = 'cs_pages/tutorial_page.jinja2'
 
     def get_progress_for_user(self, user):
-        """dsfsdfsd"""
+        """
+        get all tutorial progress made by user
+        """
 
         return TutorialProgress.for_user(user, self)
 
     def get_proxy_for_user(self, user):
+        """
+        get a tutorial page proxy for the current user
+        """
+
         progress = self.get_progress_for_user(user)
         return TutorialPageProxy(self, progess)
 
@@ -118,11 +135,17 @@ class TutorialPage(Page):
         context = super().get_context(request)
         context.update({
             'progress': progress, 
-            'body': progress.get_updated_body()
+            'body': progress.get_updated_body(),
+            'blocks': progress.get_updated_blocks()
         })
-        return context
+        return context     
+
 
 class TutorialPageProxy:
+    """
+    create a proxy of tutorial page
+    """
+
     def __init__(self, tutorial, progress):
         self.tutorial = tutorial
         self.progess = progress
@@ -132,16 +155,20 @@ class TutorialPageProxy:
         return getattr(self.tutorial, attr)
 
 
-
 class TutorialProgress(models.Model):
+    """
+    tutorial progress user
+    """
+
     user = models.ForeignKey(User)
     tutorial = models.ForeignKey(TutorialPage)
 
-
-
     @classmethod
     def for_user(cls, user, tutorial):
-        """fdgdfgdfgd"""
+        """
+        get the TutorialProgress for the current user if exists
+        if not, create a new tutorial
+        """
 
         try:
             return cls.objects.get(user=user, tutorial=tutorial)
@@ -149,20 +176,44 @@ class TutorialProgress(models.Model):
             return cls.objects.create(user=user, tutorial=tutorial)
 
     def get_updated_body(self):
+        """
+        get the page body updated for user
+        """
+
         body = TutorialPage.objects.get(pk=self.tutorial.pk).body
-        code_block = CodeBlock()
+
+        return body
+
+    def get_updated_blocks(self):
+        """
+        get all InputCodeBlocks updated for user
+        """
+
+        body = self.get_updated_body()
+
+        refs = []
 
         for block in body:
-            if isinstance(block.block, (userInputBlock, InputCodeBlock)):
-                code_block = block
+            if isinstance(block.block, InputCodeBlock):
+                ref_dict = {
+                    "language" : block.value["language"] ,
+                    "id" : block.value["block_id"]
+                }
 
-        print (code_block)
-        return body
+                refs.append(ref_dict)
+
+        return refs
+
 
 
 class InputBlockProgress(models.Model):
+    """
+    progress of InputBlock for current user
+    """
+
     progress = models.ForeignKey(TutorialProgress)
     ref = models.JSONField()
 
     def get_input_code_source_from_id(self, id_code):
         pass
+

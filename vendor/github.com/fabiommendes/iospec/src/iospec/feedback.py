@@ -1,7 +1,7 @@
 import decimal
 import jinja2
 from iospec.util import tex_escape
-from iospec.types import TestCase, IoTestCase, ErrorTestCase, IoSpec
+from iospec.types import TestCase, SimpleTestCase, ErrorTestCase, IoSpec
 from generic import generic
 from unidecode import unidecode
 
@@ -79,10 +79,13 @@ class Feedback:
                  hint=None):
         self.testcase = testcase
         self.answer_key = answer_key
-        self.grade = grade
+        self.grade = decimal.Decimal(grade)
         self.status = status
         self.hint = hint
         self.message = message
+
+    def __repr__(self):
+        return '<Feedback: %s (%.2f)>' % (self.status, self.grade)
 
     @classmethod
     def grading(cls, testcase, answer_key):
@@ -90,6 +93,13 @@ class Feedback:
         automatic grading."""
 
         return feedback(testcase, answer_key)
+
+    @classmethod
+    def from_json(cls, data):
+        kwargs = dict(data)
+        testcase = TestCase.from_json(kwargs.pop('testcase'))
+        answer_key = TestCase.from_json(kwargs.pop('answer_key'))
+        return Feedback(testcase, answer_key, **kwargs)
 
     @property
     def is_correct(self):
@@ -201,21 +211,15 @@ class Feedback:
         """Convert feedback to a JSON compatible structure of dictionaries and
         lists."""
 
+        if not hasattr(self, 'testcase'):
+            self.testcase = self.case
+            del self.case
+
         data = dict(self.__dict__)
-        data['case'] = self.testcase.to_json()
+        data['testcase'] = self.testcase.to_json()
         data['answer_key'] = self.answer_key.to_json()
         data['grade'] = float(self.grade)
         return data
-
-    @classmethod
-    def from_json(cls, data):
-        new = object.__new__(cls)
-        for k, v in data.items():
-            setattr(new, k, v)
-        new.case = TestCase.from_json(new.case)
-        new.answer_key = TestCase.from_json(new.answer_key)
-        new.grade = decimal.Decimal(new.grade)
-        return new
 
 
 #
@@ -270,7 +274,7 @@ def feedback(response: TestCase, answer_key: TestCase):
         grade = decimal.Decimal(0.5)
 
     # Wrong answer
-    elif isinstance(response, IoTestCase):
+    elif isinstance(response, SimpleTestCase):
         status = 'wrong-answer'
 
     # Invalid

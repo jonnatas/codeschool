@@ -1,16 +1,7 @@
 <!--link rel="import" href="../../bower_components/polymer/polymer.html"-->
-<script>
-    var $aceScript = null;
-    function $aceLoader() {
-        var path = '/static/bower_components/ace-builds/src-min/ace.js';
-        return $.getScript(path).then(function() {
-            ace.config.set('basePath', '/static/bower_components/ace-builds/src-min/');
-        });
-    }
-</script>
-
 <dom-module id="ace-editor">
     <template>
+        <textarea id="textarea" style="display: none;" name="{{ name }}" form="{{ form }}"></textarea>
         <div id="editor"><content></content></div>
     </template>
 
@@ -76,12 +67,10 @@
                     },
                     name: {
                         type: String,
-                        observer: '_onNameChanged',
                         reflectToAttribute: true
                     },
                     form: {
                         type: String,
-                        observer: '_onFormChanged',
                         readOnly: true,
                         reflectToAttribute: true
                     }
@@ -94,7 +83,7 @@
                 ready: function () {
                     var elem = this;
                     
-                    function ready_cb() {
+                    require(['ace/ace'], function(ace) {
                         elem.ace = ace.edit(elem.$.editor);
                         elem.ace.resize();
                         elem.find = elem.ace.find;
@@ -111,21 +100,18 @@
                         elem._onWrapModeChanged(elem.wrapMode);
                         elem._onHighlightActiveLineChanged(elem.highlightActiveLine);
                         elem._onShowPrintMarginChanged(elem.showPrintMargin);
-                        elem.name && elem._onNameChanged(elem.name);
-                        elem.form && elem._onFormChanged(elem.form);
 
                         // Connect submit event of an eventual parent form
-                        var textarea = $(elem._textarea());
+                        var textarea = elem.getTextarea();
+                        textarea.value = '';
+                        var form = (elem.form? $('#' + elem.form): $(textarea).closest('form'))[0];
 
-                        (elem.form? $('#' + elem.form): textarea.closest('form')).submit(function() {
-                            textarea.val(elem.getValue());
-                        });
-                    }
-
-                    if ($aceScript === null) {
-                        $aceScript = $aceLoader();
-                    }
-                    $aceScript.then(ready_cb);
+                        if (form) {
+                            form.addEventListener('submit', function() {
+                                $(textarea).val(elem.getValue());
+                            }, true);
+                        }
+                    });
                 },
 
                 setValue: function(value) {
@@ -136,8 +122,8 @@
                     return this.ace.getValue();
                 },
 
-                _textarea: function() {
-                    return $(this.$.editor).find('textarea')[0];
+                getTextarea: function() {
+                    return this.$.textarea;
                 },
 
                 // Observers
@@ -149,8 +135,6 @@
                 _onWrapModeChanged:             function(value) {this.ace && this.ace.getSession().setUseWrapMode(value)},
                 _onHighlightActiveLineChanged:  function(value) {this.ace && this.ace.setHighlightActiveLine(value)},
                 _onShowPrintMarginChanged:      function(value) {this.ace && this.ace.setShowPrintMargin(value)},
-                _onNameChanged:                 function(value) {this.ace && this._textarea().setAttribute('name', value)},
-                _onFormChanged:                 function(value) {this.ace && this._textarea().setAttribute('form', value)}
             })
         );
     </script>
