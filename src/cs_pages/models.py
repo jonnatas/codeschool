@@ -135,7 +135,7 @@ class TutorialPage(Page):
         context.update({
             'progress': progress, 
             'body': progress.get_updated_body(),
-            'block': progress.get_updated_blocks()
+            'blocks': progress.get_updated_blocks()
         })
         return context     
 
@@ -200,7 +200,7 @@ class TutorialProgress(models.Model):
                 }
 
                 refs.append(ref_dict)
-                
+
         return refs
 
 
