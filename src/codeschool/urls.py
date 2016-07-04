@@ -5,6 +5,7 @@ from django.views.generic import RedirectView
 
 from codeschool import views
 from cs_search import views as search_views
+from cs_pages import urls
 
 urlpatterns = [
     # # Basic wagtail/django functionality
@@ -30,8 +31,8 @@ urlpatterns = [
     # url(r'^polls/', include('cs_polls.urls')),
     # url(r'^battles/', include('cs_battles.urls', namespace='battle')),
     # url(r'^pbl/', include('cs_pbl.urls', namespace='pbl')),
+    url(r'^tutorial/', include('cs_pages.urls')),
     url(r'', include('wagtail.wagtailcore.urls')),
-
 ]
 
 
