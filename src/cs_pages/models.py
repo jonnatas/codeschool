@@ -75,18 +75,23 @@ class InputCodeBlock(CodeBlock):
     """
     
     block_id = blocks.CharBlock(max_length=50)
+    correct_code = blocks.TextBlock()
+    test_inputs = blocks.ListBlock(blocks.CharBlock(label="Test case"))
+
 
     def render(self, value):
         lang = value['language'].ref
         code = escape(value['code'])
         id_value = value['block_id']
+        correct_code = value['correct_code']
+        test_inputs = value['test_inputs'];
         html_id = "input-code-%s" % id_value
         data = (       '''<ace-editor mode="%s" id="input-code-%s">%s</ace-editor>
-            <button onclick="srvice('/tutorial/send-input-block', {id: %r, source: $('#%s')[0].getValue()})">
+            <button onclick="srvice('/tutorial/send-input-block', {id: %r, source: $('#%s')[0].getValue()
+            , correct_code: %r, test_inputs: %s, language: %r})">
             Send</button>'''
-        ) % (lang, id_value, code, id_value, html_id)
+        ) % (lang, id_value, code, id_value, html_id, correct_code, test_inputs, lang)
         return mark_safe(data)
-
 
 class SkulptPythonBlock(CodeBlock):
     """
